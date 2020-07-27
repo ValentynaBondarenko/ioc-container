@@ -9,5 +9,7 @@ public class Main {
         beanProcessor.searchClass("test");
         SongService songService = (SongService) beanProcessor.getBean("songService");
         System.out.println(songService);
+
+        beanProcessor.getBeanProperties();
     }
 }
