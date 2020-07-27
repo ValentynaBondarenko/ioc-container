@@ -1,0 +1,11 @@
+<Configuration status="debug" name="ioc-container" packages="">
+    <Appenders>
+        <Console name="ioc" target="SYSTEM__OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p %m%n"/>
+        </Console>
+    </Appenders>
+
+    <Root level="error">
+        <AppenderRef ref="STDOUT"/>
+    </Root>
+</Configuration>
