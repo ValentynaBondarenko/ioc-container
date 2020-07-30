@@ -7,11 +7,11 @@ import com.bondarenko.bean.factory.stereotype.Component;
 @Component
 public class SongService implements BeanNameAware {
     private String beanName;
-
     @Autowired
     private SongRepository songRepository;
     @Autowired
     private MoodService moodService;
+    private MetaInfoService metaInfoService;
 
     public SongRepository getSongRepository() {
         return songRepository;
@@ -27,6 +27,14 @@ public class SongService implements BeanNameAware {
 
     public void setMoodService(MoodService moodService) {
         this.moodService = moodService;
+    }
+
+    public MetaInfoService getMetaInfoService() {
+        return metaInfoService;
+    }
+
+    public void setMetaInfoService(MetaInfoService metaInfoService) {
+        this.metaInfoService = metaInfoService;
     }
 
     @Override

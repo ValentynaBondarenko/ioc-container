@@ -15,7 +15,8 @@ public class ApplicationContext {
         beanProcessor.injectionBeanName();
 
     }
-//    public void close(){
-//        beanProcessor.close();
-//    }
+    public void close(){
+        beanProcessor.close();
+        log.info("Close application context");
+    }
 }

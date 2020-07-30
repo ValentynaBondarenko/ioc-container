@@ -16,11 +16,13 @@ public class Main {
 
         songService.getMoodService();
         System.out.println(songService);
-       System.out.println(songService.getMoodService());
+        System.out.println(songService.getMoodService());
 
-         beanProcessor.beanProperties();
+        songService.getSongRepository();
+        System.out.println(songService.getSongRepository());
 
-        ApplicationContext applicationContext=new ApplicationContext("testclasses");
+        ApplicationContext applicationContext = new ApplicationContext("testclasses");
+        applicationContext.close();
 
     }
 }

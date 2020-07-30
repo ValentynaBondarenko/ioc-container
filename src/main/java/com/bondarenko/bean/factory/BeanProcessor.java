@@ -1,8 +1,6 @@
 package com.bondarenko.bean.factory;
 
-import com.bondarenko.bean.factory.stereotype.Autowired;
-import com.bondarenko.bean.factory.stereotype.Component;
-import com.bondarenko.bean.factory.stereotype.Service;
+import com.bondarenko.bean.factory.stereotype.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -56,7 +54,7 @@ public class BeanProcessor {
             try {
                 Class<?> classObject = Class.forName(directory + "." + className);//for full name get instance Class
                 if (classObject.isAnnotationPresent(Component.class) || classObject.isAnnotationPresent(Service.class)) {
-                    log.info("All class with annotation Component:  " + fileName);
+                    log.info("Class with annotation Component:  " + fileName);
 
                     //create new Instance
                     Object bean = classObject.getDeclaredConstructor().newInstance();
@@ -72,7 +70,7 @@ public class BeanProcessor {
     }
 
     public void beanProperties() {
-        log.info("start populateProperties ");
+        log.info("Start populateProperties ");
 
         for (Object object : singletons.values()) {
             for (Field field : object.getClass().getDeclaredFields()) {
@@ -103,6 +101,23 @@ public class BeanProcessor {
             Object bean = singletons.get(name);
             if (bean instanceof BeanNameAware) {
                 ((BeanNameAware) bean).setBeanName(name);
+            }
+        }
+    }
+
+    public void close() {
+        for (Object bean : singletons.values()) {
+            for (Method method : bean.getClass().getMethods()) {
+                if (method.isAnnotationPresent(PreDestroy.class)) {
+                    try {
+                        method.invoke(bean);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                       throw new RuntimeException("Can't access ", e);
+                    }
+                }
+            }
+            if (bean instanceof DisposableBean) {
+                ((DisposableBean) bean).destroy();
             }
         }
     }
