@@ -8,7 +8,7 @@
 out
 
 # Log file
-#*.log
+*.log
 
 # Package Files #
 *.jar

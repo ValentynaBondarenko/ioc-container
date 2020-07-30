@@ -17,19 +17,19 @@ import java.util.*;
 
 //singletons
 public class BeanProcessor {
-    private final Logger log = LogManager.getLogger(BeanProcessor.class);
-    private Map<String, Object> singletons = new HashMap<String, Object>();
+    private static Logger log = LogManager.getLogger(BeanProcessor.class);
+    private final Map<String, Object> singletons = new HashMap<String, Object>();
 
     public Object getBean(String beanName) {
         return singletons.get(beanName);
     }
 
-    public void searchClass(String directory) {
+    public void instantiate(String directory) {
         try {
             log.info("Start search classes in directory");
             ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 
-            String path = directory.replace('.', '/');
+            String path = directory.replace(".", File.separator);
             Enumeration<URL> resources = classLoader.getResources(path);
 
             while (resources.hasMoreElements()) {
@@ -38,17 +38,18 @@ public class BeanProcessor {
 
                 for (File classFile : Objects.requireNonNull(file.listFiles())) {
                     String fileName = classFile.getName();
-                    log.info("Found class " + fileName);
-                    createBean(fileName, directory);
+                    log.debug("Found class " + fileName);
+                    instanceBean(fileName, directory);
                 }
             }
 
         } catch (URISyntaxException | IOException e) {
-            e.printStackTrace();
+            log.error("Can't found directory");
+            throw new RuntimeException("Can't found directory", e);
         }
     }
 
-    void createBean(String fileName, String directory) {
+    void instanceBean(String fileName, String directory) {
 
         if (fileName.endsWith(".class")) {
             String className = fileName.substring(0, fileName.indexOf("."));
@@ -64,13 +65,15 @@ public class BeanProcessor {
                 }
             } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException |
                     InvocationTargetException | NullPointerException e) {
-                log.error("Can't read file");
-                throw new RuntimeException("Can't read file");
+                log.error("Can't found directory and read file");
+                throw new RuntimeException("Can't found directory and read file");
             }
         }
     }
 
-    public void getBeanProperties() {
+    public void beanProperties() {
+        log.info("start populateProperties ");
+
         for (Object object : singletons.values()) {
             for (Field field : object.getClass().getDeclaredFields()) {
                 if (field.isAnnotationPresent(Autowired.class)) {
@@ -78,20 +81,29 @@ public class BeanProcessor {
                     for (Object dependency : singletons.values()) {
                         if (dependency.getClass().equals(field.getType())) {
                             //inject properties
-                            String setterName = "set" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
+                            String setterName = "set" + field.getName().substring(0, 1).toUpperCase()
+                                    + field.getName().substring(1);//setSongRepository or setMoodService
                             try {
                                 Method set = object.getClass().getMethod(setterName, dependency.getClass());
                                 set.invoke(object, dependency);
                             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                                e.printStackTrace();
+                                log.error("Can't found method");
+                                throw new RuntimeException("Can't found method", e);
                             }
 
                         }
                     }
                 }
             }
-
         }
+    }
 
+    public void injectionBeanName() {
+        for (String name : singletons.keySet()) {
+            Object bean = singletons.get(name);
+            if (bean instanceof BeanNameAware) {
+                ((BeanNameAware) bean).setBeanName(name);
+            }
+        }
     }
 }

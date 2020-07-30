@@ -2,22 +2,20 @@ package com.bondarenko.bean.factory;
 
 
 import org.junit.jupiter.api.Test;
-import test.MoodService;
-import test.SongService;
+import testclasses.MoodService;
+import testclasses.SongService;
 
 import static org.junit.Assert.*;
 
 
 class BeanProcessorTest {
     private final BeanProcessor beanProcessor = new BeanProcessor();
-    private final String pathTest = "test";
-    //private final String pathTest = "org.test";
-
+    private final String pathTest = "testclasses";
 
     @Test
-    void createBeanIfFileIsClass() {
+    void instanceBeanIfFileIsClass() {
         //when
-        beanProcessor.createBean("MoodService.class", pathTest);
+        beanProcessor.instanceBean("MoodService.class", pathTest);
 
         //then
         MoodService moodService = (MoodService) beanProcessor.getBean("moodService");
@@ -25,9 +23,9 @@ class BeanProcessorTest {
 
     }
     @Test
-    void createBeanIfClassHaveAnnotation() {
+    void instanceBeanIfClassHaveAnnotation() {
         //when
-        beanProcessor.createBean("SongService.class", pathTest);
+        beanProcessor.instanceBean("SongService.class", pathTest);
 
         //then
         SongService songService = (SongService) beanProcessor.getBean("songService");
