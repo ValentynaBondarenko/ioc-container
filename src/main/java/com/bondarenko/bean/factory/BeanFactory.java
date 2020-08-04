@@ -9,10 +9,7 @@ import lombok.SneakyThrows;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.*;
 
 public class BeanFactory {
@@ -23,6 +20,7 @@ public class BeanFactory {
     public void addPostProcessor(BeanPostProcessor postProcessor) {
         postProcessors.add(postProcessor);
     }
+
     public Object getBean(String beanName) {
         return beans.get(beanName);
     }
@@ -37,7 +35,6 @@ public class BeanFactory {
             Class<?> classObject = Class.forName(fileName.replace("/", "."));
             if (classObject.isAnnotationPresent(Component.class) || classObject.isAnnotationPresent(Service.class)) {
                 Object bean = classObject.getDeclaredConstructor().newInstance();
-                //TODO [vb] change id
                 String beanId = className.substring(0, 1).toLowerCase() + className.substring(1);
                 beans.put(beanId, bean);
             }
@@ -45,7 +42,7 @@ public class BeanFactory {
     }
 
     public void setterInjector() {
-        log.info("Start populateProperties ");
+        log.info("Start properties ");
 
         for (Object object : beans.values()) {
             for (Field field : object.getClass().getDeclaredFields()) {
@@ -71,24 +68,36 @@ public class BeanFactory {
 
     public void constructorInjection() {
         for (Object object : beans.values()) {
+
             Constructor<?>[] constructors = object.getClass().getDeclaredConstructors();
             for (Constructor<?> constructor : constructors) {
-                Autowired annotation = constructor.getAnnotation(Autowired.class);
-                if (annotation != null) {
-                    for (Object dependency : beans.values()) {
-                        String constructorName = constructor.getName();
-                        try {
-                            Constructor<?> constructorInject = object.getClass().getConstructor(Class.forName(constructorName), dependency.getClass());
-                            constructorInject.newInstance();
-                        } catch (NoSuchMethodException | ClassNotFoundException e) {
-                            throw new RuntimeException("Can't found constructor");
-                        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                            e.printStackTrace();
-                        }
+                constructor.setAccessible(true);
+                if (constructor.isAnnotationPresent(Autowired.class)) {
+
+                    Type[] typesParametersConstructor = constructor.getParameterTypes();
+                    Object[] parametersObject = new Object[typesParametersConstructor.length];
+                    for (int i = 0; i < typesParametersConstructor.length; i++) {
+
+                        parametersObject[i] = getObjectType(typesParametersConstructor[i]);
                     }
+                    try {
+                        constructor.newInstance(parametersObject);
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
                 }
+
             }
         }
+    }
+
+    private Object getObjectType(Type type) {
+        Object result = null;
+        for (Object object : beans.values()) {
+            result = object.getClass().getTypeName().equals(type.getTypeName());
+        }
+        return result;
     }
 
     public void injectBeanNames() {
@@ -131,5 +140,4 @@ public class BeanFactory {
             }
         }
     }
-
 }

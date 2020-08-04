@@ -5,8 +5,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class ApplicationContext {
-    private static Logger log = LogManager.getLogger(ApplicationContext.class);
-    private BeanFactory beanFactory = new BeanFactory();
+    private static final Logger log = LogManager.getLogger(ApplicationContext.class);
+    private final BeanFactory beanFactory = new BeanFactory();
 
     public ApplicationContext(String directory) {
         log.info("Context in constructor start");

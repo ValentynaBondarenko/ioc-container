@@ -12,7 +12,7 @@ class ScanPackageTest {
     void foundAllClassesInDirectory() {
         String path = "testclasses/classes";
         List<? extends String> list = ScanPackage.getPackageContent(path);
-        assertEquals(4, list.size());
+        assertEquals(5, list.size());
     }
 
     @Test
@@ -29,7 +29,7 @@ class ScanPackageTest {
 
         List<? extends String> list = ScanPackage.getPackageContent(path);
 
-        assertEquals(6, list.size());
+        assertEquals(7, list.size());
         assertTrue(list.contains("testclasses/WithNonParameterizedConstructor"));
         assertTrue(list.contains("testclasses/classes/Main"));
         assertTrue(list.contains("testclasses/classes/MoodService"));
