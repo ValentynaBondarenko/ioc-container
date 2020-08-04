@@ -8,10 +8,10 @@ import testclasses.packegeFirst.MetaInfoService;
 @Component
 public class SongService implements BeanNameAware {
     private String beanName;
-    @Autowired
     private SongRepository songRepository;
     @Autowired
     private MoodService moodService;
+    @Autowired
     private MetaInfoService metaInfoService;
 
     public SongRepository getSongRepository() {

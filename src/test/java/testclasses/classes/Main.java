@@ -3,8 +3,6 @@ package testclasses.classes;
 import com.bondarenko.bean.factory.BeanFactory;
 import com.bondarenko.context.ApplicationContext;
 
-import java.lang.reflect.InvocationTargetException;
-
 public class Main {
 
     public static void main(String[] args) {
@@ -13,23 +11,19 @@ public class Main {
 
         beanFactory.init("testclasses/classes");
 
+        beanFactory.setterInjector();
+        SongService songService = (SongService) beanFactory.getBean("songService");
+
+        beanFactory.initializeBeans();
+
+        songService.getMoodService();
+        System.out.println(songService);
+        System.out.println(songService.getMoodService());
+
+        songService.getSongRepository();
+        System.out.println(songService.getSongRepository());
+
+        ApplicationContext applicationContext = new ApplicationContext("testclasses/classes");
+        applicationContext.close();
     }
-
-//        beanFactory.setterInjector();
-//        SongService songService = (SongService) beanFactory.getBean("songService");
-//
-//        beanFactory.injectionBeanName();
-//        System.out.println("Bean name = " + songService.getBeanName());
-//
-//        songService.getMoodService();
-//        System.out.println(songService);
-//        System.out.println(songService.getMoodService());
-//
-//        songService.getSongRepository();
-//        System.out.println(songService.getSongRepository());
-//
-//        ApplicationContext applicationContext = new ApplicationContext("testclasses.classes");
-//        applicationContext.close();
-
-
 }

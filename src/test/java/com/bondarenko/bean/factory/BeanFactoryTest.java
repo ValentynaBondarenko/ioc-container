@@ -1,9 +1,11 @@
 package com.bondarenko.bean.factory;
 
+import com.bondarenko.bean.factory.annotation.Autowired;
+import com.bondarenko.bean.factory.annotation.stereotype.Component;
+import com.bondarenko.bean.factory.annotation.stereotype.Service;
 import org.junit.jupiter.api.Test;
 import testclasses.classes.MoodService;
 import testclasses.classes.SongService;
-import testclasses.WithNonParameterizedConstructor;
 
 import static org.junit.Assert.*;
 
@@ -23,63 +25,44 @@ class BeanFactoryTest {
     }
 
     @Test
-    void testInstanceBeanIfClassHaveAnnotationComponentAndAutowired() {
+    void beanBeInstanceIfClassHaveAnnotationComponent() {
         //when
         beanFactory.init(pathTest);
-        beanFactory.setterInjector();
 
         //then
+        MoodService moodService = (MoodService) beanFactory.getBean("moodService");
         SongService songService = (SongService) beanFactory.getBean("songService");
+
+        assertTrue(moodService.getClass().isInstance(moodService));
         assertTrue(songService.getClass().isInstance(songService));
-        assertNotNull(songService.getMoodService());
-    }
+        assertTrue(moodService.getClass().isAnnotationPresent(Component.class));
+        assertTrue(songService.getClass().isAnnotationPresent(Component.class));
 
+    }
     @Test
-    void testInstanceBeanIfClassNotHaveAnnotationComponent() {
+    void beanBeInstanceIfClassHaveAnnotationService() {
         //when
         beanFactory.init(pathTest);
-        beanFactory.setterInjector();
+
+        //then
+        MoodService moodService = (MoodService) beanFactory.getBean("moodService");
         SongService songService = (SongService) beanFactory.getBean("songService");
 
-        //then
-        assertFalse(songService.getClass().isInstance(songService.getSongRepository()));
-        assertNull(songService.getSongRepository());
-    }
-
-    @Test
-    void testInstanceBeanIfClassNotHaveAnnotationComponentAndAutowired() {
-        //when
-        beanFactory.init(pathTest);
-        beanFactory.setterInjector();
-        SongService songService = (SongService) beanFactory.getBean("songService");
-
-        //then
-        assertFalse(songService.getClass().isInstance(songService.getMetaInfoService()));
-        assertNull(songService.getMetaInfoService());
-    }
-
-    @Test
-    void shouldBeCreateBeanWithDefaultConstructor() {
-        //when
-        beanFactory.init( pathTest);
-        beanFactory.constructorInjection();
-        SongService songService = (SongService) beanFactory.getBean(SongService.class);
-
-        //then
-        assertEquals("songService", songService.toString());
-    }
-
-    @Test
-    void shouldBeCreateBeanWithNoArgumentConstructor() {
-        //when
-        beanFactory.init( pathTest);
-        beanFactory.constructorInjection();
-        WithNonParameterizedConstructor bean = (WithNonParameterizedConstructor) beanFactory.getBean(WithNonParameterizedConstructor.class);
-
-        //then
-        assertEquals("WithNonParameterizedConstructor", bean.toString());
+        assertTrue(moodService.getClass().isAnnotationPresent(Service.class));
+        assertTrue(songService.getClass().isAnnotationPresent(Service.class));
 
     }
+
+// Why I can't check class without annotation?
+//    @Test
+//    void testInstanceBeanIfClassNotHaveAnnotationComponent() {
+//        //when
+//        beanFactory.init(pathTest);
+//        SongService songService = (SongService) beanFactory.getBean("songService");
+//
+//        //then
+//        assertFalse(songService.getSongRepository().getClass().isAnnotationPresent(Component.class));
+//    }
 
 
 }

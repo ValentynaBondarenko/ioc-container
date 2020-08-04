@@ -16,23 +16,15 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 public class BeanFactory {
-
     private static Logger log = LogManager.getLogger(BeanFactory.class);
     private final Map<String, Object> beans = new HashMap<>();
-
     private List<BeanPostProcessor> postProcessors = new ArrayList<>();
 
     public void addPostProcessor(BeanPostProcessor postProcessor) {
         postProcessors.add(postProcessor);
     }
-
-
     public Object getBean(String beanName) {
         return beans.get(beanName);
-    }
-
-    public Object getBean(Class<?> bean) {
-        return beans.get(bean);
     }
 
     @SneakyThrows
@@ -41,22 +33,14 @@ public class BeanFactory {
 
         for (String fileName : classNames) {
             String className = fileName.substring(fileName.lastIndexOf("/") + 1);
-            System.out.println(className);
 
             Class<?> classObject = Class.forName(fileName.replace("/", "."));
             if (classObject.isAnnotationPresent(Component.class) || classObject.isAnnotationPresent(Service.class)) {
                 Object bean = classObject.getDeclaredConstructor().newInstance();
+                //TODO [vb] change id
                 String beanId = className.substring(0, 1).toLowerCase() + className.substring(1);
                 beans.put(beanId, bean);
             }
-        }
-    }
-
-    public void dependencyInjector() {
-        for (Object object : beans.values()) {
-            Class<?> clazz = object.getClass();
-            Field[] fields = clazz.getDeclaredFields();
-            Method[] methods = clazz.getDeclaredMethods();
         }
     }
 
@@ -78,7 +62,6 @@ public class BeanFactory {
                                 log.error("Can't found method");
                                 throw new RuntimeException("Can't found method", e);
                             }
-
                         }
                     }
                 }
@@ -108,11 +91,26 @@ public class BeanFactory {
         }
     }
 
-    public void injectionBeanName() {
+    public void injectBeanNames() {
         for (String name : beans.keySet()) {
             Object bean = beans.get(name);
+
             if (bean instanceof BeanNameAware) {
                 ((BeanNameAware) bean).setBeanName(name);
+            }
+        }
+    }
+
+    public void initializeBeans() {
+        for (String name : beans.keySet()) {
+            Object bean = beans.get(name);
+
+            for (BeanPostProcessor postProcessor : postProcessors) {
+                postProcessor.postProcessBeforeInitialization(bean, name);
+            }
+
+            for (BeanPostProcessor postProcessor : postProcessors) {
+                postProcessor.postProcessAfterInitialization(bean, name);
             }
         }
     }
@@ -133,6 +131,5 @@ public class BeanFactory {
             }
         }
     }
-
 
 }
