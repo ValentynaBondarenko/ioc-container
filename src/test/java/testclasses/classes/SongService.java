@@ -1,8 +1,9 @@
-package testclasses;
+package testclasses.classes;
 
 import com.bondarenko.bean.factory.BeanNameAware;
-import com.bondarenko.bean.factory.stereotype.Autowired;
-import com.bondarenko.bean.factory.stereotype.Component;
+import com.bondarenko.bean.factory.annotation.Autowired;
+import com.bondarenko.bean.factory.annotation.stereotype.Component;
+import testclasses.packegeFirst.MetaInfoService;
 
 @Component
 public class SongService implements BeanNameAware {

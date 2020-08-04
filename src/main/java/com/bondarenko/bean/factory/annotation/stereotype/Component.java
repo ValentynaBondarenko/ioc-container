@@ -1,4 +1,4 @@
-package com.bondarenko.bean.factory.stereotype;
+package com.bondarenko.bean.factory.annotation.stereotype;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

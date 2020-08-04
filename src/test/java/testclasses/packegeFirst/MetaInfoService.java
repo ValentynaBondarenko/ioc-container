@@ -1,4 +1,4 @@
-package testclasses;
+package testclasses.packegeFirst;
 
 public class MetaInfoService {
 }

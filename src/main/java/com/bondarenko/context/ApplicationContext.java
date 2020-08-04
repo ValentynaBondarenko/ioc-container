@@ -1,22 +1,28 @@
 package com.bondarenko.context;
 
-import com.bondarenko.bean.factory.BeanProcessor;
+import com.bondarenko.bean.factory.BeanFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class ApplicationContext {
     private static Logger log = LogManager.getLogger(ApplicationContext.class);
-    private BeanProcessor beanProcessor = new BeanProcessor();
+    private BeanFactory beanFactory = new BeanFactory();
 
-    public ApplicationContext(String directory) {
+    public ApplicationContext(String directory) throws InvocationTargetException, NoSuchMethodException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         log.info("Context in constructor start");
-        beanProcessor.instantiate(directory);
-        beanProcessor.beanProperties();
-        beanProcessor.injectionBeanName();
+        beanFactory.init(directory);
+        beanFactory.setterInjector();
+        beanFactory.constructorInjection();
+        beanFactory.injectionBeanName();
 
     }
-    public void close(){
-        beanProcessor.close();
+
+    public void close() {
+        beanFactory.close();
         log.info("Close application context");
     }
+
+
 }
