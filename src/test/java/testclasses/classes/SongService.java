@@ -7,27 +7,28 @@ import testclasses.packegeFirst.MetaInfoService;
 
 @Component
 public class SongService implements BeanNameAware {
-    private String beanName;
-    private SongRepository songRepository;
+
+    private String beanName;//before init
+    private SongRepository songRepository;//repo constructor -> also bean
     @Autowired
     private MoodService moodService;
     @Autowired
     private MetaInfoService metaInfoService;
 
-    public SongService(){
+    public SongService() {
 
     }
     @Autowired
-    public SongService(String beanName, SongRepository songRepository, MoodService moodService, MetaInfoService metaInfoService) {
-        this.beanName = beanName;
-        this.songRepository = songRepository;
+    public SongService(MoodService moodService, MetaInfoService metaInfoService, RepositoryContainer repositoryContainer) {
         this.moodService = moodService;
         this.metaInfoService = metaInfoService;
+        this.songRepository = (SongRepository) repositoryContainer.repositories.get("songRepository");
     }
 
     public SongRepository getSongRepository() {
         return songRepository;
     }
+
     @Autowired
     public void setSongRepository(SongRepository songRepository) {
         this.songRepository = songRepository;

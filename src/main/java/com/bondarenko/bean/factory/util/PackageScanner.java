@@ -9,8 +9,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
 
-public class ScanPackage {
+public class PackageScanner {
 
     public static ClassLoader getCurrentClassLoader() {
         ClassLoader classLoader;
@@ -28,7 +29,7 @@ public class ScanPackage {
         final URL baseDirectory = getCurrentClassLoader().getResource(scanPackages);
         try {
             Enumeration<URL> resources = getCurrentClassLoader().getResources(scanPackages);
-            String basePackage = baseDirectory.getPath();
+            String basePackage = Objects.requireNonNull(baseDirectory).getPath();
 
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();

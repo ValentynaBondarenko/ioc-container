@@ -6,12 +6,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ScanPackageTest {
+class PackageScannerTest {
 
     @Test
     void foundAllClassesInDirectory() {
         String path = "testclasses/classes";
-        List<? extends String> list = ScanPackage.getPackageContent(path);
+        List<? extends String> list = PackageScanner.getPackageContent(path);
         assertEquals(5, list.size());
     }
 
@@ -19,7 +19,7 @@ class ScanPackageTest {
     void foundAllInnerClassInDirectory() {
         String path = "testclasses/packegeFirst";
 
-        List<? extends String> list = ScanPackage.getPackageContent(path);
+        List<? extends String> list = PackageScanner.getPackageContent(path);
         assertEquals(1, list.size());
     }
 
@@ -27,7 +27,7 @@ class ScanPackageTest {
     void foundAllClassesInPackage() {
         String path = "testclasses";
 
-        List<? extends String> list = ScanPackage.getPackageContent(path);
+        List<? extends String> list = PackageScanner.getPackageContent(path);
 
         assertEquals(7, list.size());
         assertTrue(list.contains("testclasses/WithNonParameterizedConstructor"));

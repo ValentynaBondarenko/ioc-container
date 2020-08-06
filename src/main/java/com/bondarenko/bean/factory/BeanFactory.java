@@ -4,7 +4,8 @@ import com.bondarenko.bean.factory.annotation.Autowired;
 import com.bondarenko.bean.factory.annotation.PreDestroy;
 import com.bondarenko.bean.factory.annotation.stereotype.*;
 import com.bondarenko.bean.factory.config.BeanPostProcessor;
-import com.bondarenko.bean.factory.util.ScanPackage;
+import com.bondarenko.bean.factory.exception.CountConstructorException;
+import com.bondarenko.bean.factory.util.PackageScanner;
 import lombok.SneakyThrows;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -27,12 +28,12 @@ public class BeanFactory {
 
     @SneakyThrows
     public void init(String directory) {
-        List<? extends String> classNames = ScanPackage.getPackageContent(directory);
-
+        log.info("Start init method");
+        List<? extends String> classNames = PackageScanner.getPackageContent(directory);
         for (String fileName : classNames) {
             String className = fileName.substring(fileName.lastIndexOf("/") + 1);
-
             Class<?> classObject = Class.forName(fileName.replace("/", "."));
+
             if (classObject.isAnnotationPresent(Component.class) || classObject.isAnnotationPresent(Service.class)) {
                 Object bean = classObject.getDeclaredConstructor().newInstance();
                 String beanId = className.substring(0, 1).toLowerCase() + className.substring(1);
@@ -41,8 +42,9 @@ public class BeanFactory {
         }
     }
 
+
     public void setterInjector() {
-        log.info("Start properties ");
+        log.info("Start setter inject");
 
         for (Object object : beans.values()) {
             for (Field field : object.getClass().getDeclaredFields()) {
@@ -55,8 +57,9 @@ public class BeanFactory {
                             try {
                                 Method set = object.getClass().getMethod(setterName, dependency.getClass());
                                 set.invoke(object, dependency);
+
                             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                                log.error("Can't found method");
+                                log.error("Can't found method to inject setter");
                                 throw new RuntimeException("Can't found method", e);
                             }
                         }
@@ -66,38 +69,88 @@ public class BeanFactory {
         }
     }
 
+    @SneakyThrows
+    private void initClass(String fileName) {
+
+        String className = fileName.substring(fileName.lastIndexOf(".") + 1);
+        for (Map.Entry<String, Object> entry : beans.entrySet()) {
+            String objectKey = entry.getKey();
+            //ToDo [vb] add sort
+            if (!objectKey.equalsIgnoreCase(fileName)) {
+
+                Class<?> classObject = Class.forName(fileName);
+                log.info("classObject : {}", classObject);
+                Object bean = classObject.getDeclaredConstructor().newInstance();
+                log.info("BEAN! : {}", bean);
+                String beanId = className.substring(0, 1).toLowerCase() + className.substring(1);
+                beans.put(beanId, bean);
+            }
+
+        }
+
+    }
+
     public void constructorInjection() {
-        for (Object object : beans.values()) {
+        log.info("Start constructor inject");
+        for (Map.Entry<String, Object> entry : beans.entrySet()) {
+            Object object = entry.getValue();
 
             Constructor<?>[] constructors = object.getClass().getDeclaredConstructors();
+
             for (Constructor<?> constructor : constructors) {
                 constructor.setAccessible(true);
-                if (constructor.isAnnotationPresent(Autowired.class)) {
+                if (constructor.isAnnotationPresent(Autowired.class) && validateCountConstructor(constructors)) {
+                    log.info("Check constructor : {} annotation @Autowired", constructor.getName());
 
                     Type[] typesParametersConstructor = constructor.getParameterTypes();
+                    for (Type param : typesParametersConstructor) {
+
+                        String paramName = param.getTypeName();//всі імена
+
+                        log.info("Get constructor parameter : {} ", paramName);
+
+                        initClass(paramName);
+//                        for (Map.Entry<String, Object> entry2 : beans.entrySet()) {
+//                            Object object2 = entry2.getValue();
+//                            log.info("All object in constructor : {} ", object2);
+//                        }
+
+
+                    }
                     Object[] parametersObject = new Object[typesParametersConstructor.length];
                     for (int i = 0; i < typesParametersConstructor.length; i++) {
 
                         parametersObject[i] = getObjectType(typesParametersConstructor[i]);
+                        log.info("Get constructor parameter Object : {} ", parametersObject);
                     }
                     try {
-                        constructor.newInstance(parametersObject);
+                        entry.setValue(constructor.newInstance(parametersObject));
+
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
+                        log.error("Can't inject constructor");
+                        throw new RuntimeException("Can't inject constructor", e);
                     }
-
                 }
-
             }
         }
+
     }
 
+
+    //    private Object getObjectType(Type type) {
+//        return beans.values().stream()
+//                .filter(bean -> bean.getClass().getTypeName().equals(type.getTypeName()))
+//                .findFirst()
+//                .orElse(null);
+//
+//    }
     private Object getObjectType(Type type) {
-        Object result = null;
         for (Object object : beans.values()) {
-            result = object.getClass().getTypeName().equals(type.getTypeName());
+            if (object.getClass().getTypeName().equals(type.getTypeName())) {
+                return object;
+            }
         }
-        return result;
+        return null;
     }
 
     public void injectBeanNames() {
@@ -139,5 +192,25 @@ public class BeanFactory {
                 ((DisposableBean) bean).destroy();
             }
         }
+    }
+
+    /**
+     * Must be only one constructor in class with annotation @Autowired
+     */
+    @SneakyThrows
+    public boolean validateCountConstructor(Constructor<?>[] constructors) {
+        int count = 0;
+        for (Constructor<?> constructor : constructors) {
+            if (constructor.isAnnotationPresent(Autowired.class)) {
+                count++;
+            }
+        }
+        if (count == 1) {
+            return true;
+        } else {
+            log.error("More than two constructors in class with annotation @Autowired");
+            throw new CountConstructorException("More than two constructors in class with annotation @Autowired");
+        }
+
     }
 }
