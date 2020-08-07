@@ -70,6 +70,7 @@ class BeanFactoryTest {
         assertTrue(songService.getMoodService().getClass().isInstance(moodService));
         assertTrue(songService.getMetaInfoService().getClass().isInstance(metaInfoService));
         assertNull(songService.getSongRepository());
+        assertEquals(5,beanFactory.beansSize());
     }
 
     @Test
@@ -98,12 +99,8 @@ class BeanFactoryTest {
         assertNotNull(songService.getSongRepository());
         assertNotNull(songService.getMetaInfoService());
         assertTrue(songService.getMoodService().getClass().isInstance(moodService));
+        assertEquals(5,beanFactory.beansSize());
 
-    }
-
-    //Todo [vb]
-    @Test
-    void CountBeansWhenClassHasAnnotationAutowiredInConstructor() {
 
     }
 

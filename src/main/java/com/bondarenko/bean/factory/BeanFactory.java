@@ -26,6 +26,10 @@ public class BeanFactory {
         return beans.get(beanName);
     }
 
+    public int beansSize() {
+        return beans.size();
+    }
+
     @SneakyThrows
     public void init(String directory) {
         log.info("Start init method");
@@ -41,7 +45,6 @@ public class BeanFactory {
             }
         }
     }
-
 
     public void setterInjector() {
         log.info("Start setter inject");
@@ -75,26 +78,20 @@ public class BeanFactory {
         String className = fileName.substring(fileName.lastIndexOf(".") + 1);
         for (Map.Entry<String, Object> entry : beans.entrySet()) {
             String objectKey = entry.getKey();
-            //ToDo [vb] add sort
             if (!objectKey.equalsIgnoreCase(fileName)) {
-
                 Class<?> classObject = Class.forName(fileName);
-                log.info("classObject : {}", classObject);
                 Object bean = classObject.getDeclaredConstructor().newInstance();
-                log.info("BEAN! : {}", bean);
                 String beanId = className.substring(0, 1).toLowerCase() + className.substring(1);
                 beans.put(beanId, bean);
             }
-
         }
-
     }
 
+    @SneakyThrows
     public void constructorInjection() {
         log.info("Start constructor inject");
         for (Map.Entry<String, Object> entry : beans.entrySet()) {
             Object object = entry.getValue();
-
             Constructor<?>[] constructors = object.getClass().getDeclaredConstructors();
 
             for (Constructor<?> constructor : constructors) {
@@ -104,24 +101,16 @@ public class BeanFactory {
 
                     Type[] typesParametersConstructor = constructor.getParameterTypes();
                     for (Type param : typesParametersConstructor) {
-
-                        String paramName = param.getTypeName();//всі імена
-
+                        String paramName = param.getTypeName();
                         log.info("Get constructor parameter : {} ", paramName);
-
-                        initClass(paramName);
-//                        for (Map.Entry<String, Object> entry2 : beans.entrySet()) {
-//                            Object object2 = entry2.getValue();
-//                            log.info("All object in constructor : {} ", object2);
+//                        if (searchPrimitiveType(param)) {
 //                        }
-
-
+                        initClass(paramName);
                     }
+
                     Object[] parametersObject = new Object[typesParametersConstructor.length];
                     for (int i = 0; i < typesParametersConstructor.length; i++) {
-
                         parametersObject[i] = getObjectType(typesParametersConstructor[i]);
-                        log.info("Get constructor parameter Object : {} ", parametersObject);
                     }
                     try {
                         entry.setValue(constructor.newInstance(parametersObject));
@@ -133,17 +122,9 @@ public class BeanFactory {
                 }
             }
         }
-
     }
 
-
-    //    private Object getObjectType(Type type) {
-//        return beans.values().stream()
-//                .filter(bean -> bean.getClass().getTypeName().equals(type.getTypeName()))
-//                .findFirst()
-//                .orElse(null);
-//
-//    }
+    @SneakyThrows
     private Object getObjectType(Type type) {
         for (Object object : beans.values()) {
             if (object.getClass().getTypeName().equals(type.getTypeName())) {
@@ -151,6 +132,18 @@ public class BeanFactory {
             }
         }
         return null;
+    }
+
+    private boolean searchPrimitiveType(Type type) throws ClassNotFoundException {
+        Constant constant = new Constant();
+        for (Map.Entry<String, Class<?>> mapEntry : constant.CLASS_MAP.entrySet()) {
+            Object primitiveClass = mapEntry.getValue();
+            String paramName = type.getTypeName();
+            if (primitiveClass.equals(Class.forName(paramName))) {
+                break;
+            }
+        }
+        return true;
     }
 
     public void injectBeanNames() {

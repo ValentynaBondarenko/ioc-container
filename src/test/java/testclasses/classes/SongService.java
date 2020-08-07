@@ -8,8 +8,8 @@ import testclasses.packegeFirst.MetaInfoService;
 @Component
 public class SongService implements BeanNameAware {
 
-    private String beanName;//before init
-    private SongRepository songRepository;//repo constructor -> also bean
+    private String beanName;
+    private SongRepository songRepository;
     @Autowired
     private MoodService moodService;
     @Autowired
@@ -18,8 +18,10 @@ public class SongService implements BeanNameAware {
     public SongService() {
 
     }
+
     @Autowired
-    public SongService(MoodService moodService, MetaInfoService metaInfoService, RepositoryContainer repositoryContainer) {
+    public SongService( MoodService moodService, MetaInfoService metaInfoService, RepositoryContainer repositoryContainer) {
+     //  this.beanName = beanName;
         this.moodService = moodService;
         this.metaInfoService = metaInfoService;
         this.songRepository = (SongRepository) repositoryContainer.repositories.get("songRepository");
