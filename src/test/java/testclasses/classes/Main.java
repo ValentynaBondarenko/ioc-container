@@ -10,7 +10,7 @@ public class Main {
         BeanFactory beanFactory = new BeanFactory();
         beanFactory.addPostProcessor(new CurrentPostProcessor());
 
-        beanFactory.init("testclasses/classes");
+        beanFactory.init("testclasses");
 
         beanFactory.setterInjector();
         SongService songService = (SongService) beanFactory.getBean("songService");

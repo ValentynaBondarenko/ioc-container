@@ -2,20 +2,27 @@ package com.bondarenko.bean.factory;
 
 import com.bondarenko.bean.factory.annotation.Autowired;
 import com.bondarenko.bean.factory.annotation.PreDestroy;
-import com.bondarenko.bean.factory.annotation.stereotype.*;
+import com.bondarenko.bean.factory.annotation.stereotype.Component;
+import com.bondarenko.bean.factory.annotation.stereotype.Service;
 import com.bondarenko.bean.factory.config.BeanPostProcessor;
 import com.bondarenko.bean.factory.exception.CountConstructorException;
 import com.bondarenko.bean.factory.util.PackageScanner;
 import lombok.SneakyThrows;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Create new bean. Bean equals object.
+ */
 public class BeanFactory {
-    private static Logger log = LogManager.getLogger(BeanFactory.class);
-    private final Map<String, Object> beans = new HashMap<>();
+    private static final Logger LOGGER = LogManager.getLogger(BeanFactory.class);
+    private final Map<String, Object> beans = new ConcurrentHashMap<>();
     private List<BeanPostProcessor> postProcessors = new ArrayList<>();
 
     public void addPostProcessor(BeanPostProcessor postProcessor) {
@@ -30,25 +37,26 @@ public class BeanFactory {
         return beans.size();
     }
 
+    /**
+     * Create new instance
+     *
+     * @param directory- the directory in which potential beans will be searched
+     */
     @SneakyThrows
     public void init(String directory) {
-        log.info("Start init method");
+        LOGGER.info("Start init method");
         List<? extends String> classNames = PackageScanner.getPackageContent(directory);
         for (String fileName : classNames) {
-            String className = fileName.substring(fileName.lastIndexOf("/") + 1);
-            Class<?> classObject = Class.forName(fileName.replace("/", "."));
-
-            if (classObject.isAnnotationPresent(Component.class) || classObject.isAnnotationPresent(Service.class)) {
-                Object bean = classObject.getDeclaredConstructor().newInstance();
-                String beanId = className.substring(0, 1).toLowerCase() + className.substring(1);
+            if (Class.forName(fileName).isAnnotationPresent(Component.class) || Class.forName(fileName).isAnnotationPresent(Service.class)) {
+                Object bean = Class.forName(fileName).getDeclaredConstructor().newInstance();
+                String beanId = createBeanId(fileName);
                 beans.put(beanId, bean);
             }
         }
     }
 
     public void setterInjector() {
-        log.info("Start setter inject");
-
+        LOGGER.info("Start feald or setter inject");
         for (Object object : beans.values()) {
             for (Field field : object.getClass().getDeclaredFields()) {
                 if (field.isAnnotationPresent(Autowired.class)) {
@@ -62,7 +70,7 @@ public class BeanFactory {
                                 set.invoke(object, dependency);
 
                             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                                log.error("Can't found method to inject setter");
+                                LOGGER.error("Can't found method to inject setter");
                                 throw new RuntimeException("Can't found method", e);
                             }
                         }
@@ -81,7 +89,7 @@ public class BeanFactory {
             if (!objectKey.equalsIgnoreCase(fileName)) {
                 Class<?> classObject = Class.forName(fileName);
                 Object bean = classObject.getDeclaredConstructor().newInstance();
-                String beanId = className.substring(0, 1).toLowerCase() + className.substring(1);
+                String beanId = createBeanId(className);
                 beans.put(beanId, bean);
             }
         }
@@ -89,7 +97,7 @@ public class BeanFactory {
 
     @SneakyThrows
     public void constructorInjection() {
-        log.info("Start constructor inject");
+        LOGGER.info("Start constructor inject");
         for (Map.Entry<String, Object> entry : beans.entrySet()) {
             Object object = entry.getValue();
             Constructor<?>[] constructors = object.getClass().getDeclaredConstructors();
@@ -97,14 +105,12 @@ public class BeanFactory {
             for (Constructor<?> constructor : constructors) {
                 constructor.setAccessible(true);
                 if (constructor.isAnnotationPresent(Autowired.class) && validateCountConstructor(constructors)) {
-                    log.info("Check constructor : {} annotation @Autowired", constructor.getName());
+                    LOGGER.info("Check constructor : {} annotation @Autowired", constructor.getName());
 
                     Type[] typesParametersConstructor = constructor.getParameterTypes();
                     for (Type param : typesParametersConstructor) {
                         String paramName = param.getTypeName();
-                        log.info("Get constructor parameter : {} ", paramName);
-//                        if (searchPrimitiveType(param)) {
-//                        }
+                        LOGGER.info("Get constructor parameter : {} ", paramName);
                         initClass(paramName);
                     }
 
@@ -116,7 +122,7 @@ public class BeanFactory {
                         entry.setValue(constructor.newInstance(parametersObject));
 
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                        log.error("Can't inject constructor");
+                        LOGGER.error("Can't inject constructor");
                         throw new RuntimeException("Can't inject constructor", e);
                     }
                 }
@@ -201,9 +207,14 @@ public class BeanFactory {
         if (count == 1) {
             return true;
         } else {
-            log.error("More than two constructors in class with annotation @Autowired");
+            LOGGER.error("More than two constructors in class with annotation @Autowired");
             throw new CountConstructorException("More than two constructors in class with annotation @Autowired");
         }
 
+    }
+
+    private String createBeanId(String classObject) {
+        int index = classObject.lastIndexOf(".");
+        return classObject.substring(index).replace(".", "").toLowerCase();
     }
 }
