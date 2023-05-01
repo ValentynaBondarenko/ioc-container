@@ -9,6 +9,7 @@ import com.bondarenko.bean.factory.injection.ConstructorInjection;
 import com.bondarenko.bean.factory.injection.FieldInjection;
 import com.bondarenko.bean.factory.injection.Injection;
 import com.bondarenko.bean.factory.util.PackageScanner;
+import com.bondarenko.bean.factory.util.StringParsUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,10 +33,21 @@ public class BeanFactory {
         postProcessors.add(postProcessor);
     }
 
+    /**
+     * Get bean from context
+     *
+     * @param beanName
+     * @return bean
+     */
     public Object getBean(String beanName) {
         return beans.get(beanName);
     }
 
+    /**
+     * Count beans in context
+     *
+     * @return Count beans
+     */
     public int beansSize() {
         return beans.size();
     }
@@ -49,7 +61,7 @@ public class BeanFactory {
         LOGGER.info("Start init method");
         List<? extends String> classNames = PackageScanner.getPackageContent(directory);
         for (String fileName : classNames) {
-            String className = fileName.substring(fileName.lastIndexOf("/") + 1);
+            String className = StringParsUtil.getClassNameFromPath(fileName);
             Class<?> classObject = getClassObject(fileName);
             if (classObject.isAnnotationPresent(Component.class) || classObject.isAnnotationPresent(Service.class)) {
                 Object bean = createNewBean(classObject);
@@ -110,7 +122,7 @@ public class BeanFactory {
 
     private Class<?> getClassObject(String fileName) {
         try {
-            return Class.forName(fileName.replace("/", "."));
+            return Class.forName(fileName);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

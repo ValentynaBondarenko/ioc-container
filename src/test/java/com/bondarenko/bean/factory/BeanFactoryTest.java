@@ -101,17 +101,8 @@ class BeanFactoryTest {
         assertNotNull(songService.getSongRepository());
         assertNotNull(songService.getMetaInfoService());
         assertTrue(songService.getMoodService().getClass().isInstance(moodService));
-        assertEquals(5, beanFactory.beansSize());
+        assertEquals(8, beanFactory.beansSize());
 
-    }
-
-    @Test
-    void validateConstructorWithAnnotationAutowired() {
-        beanFactory.init(pathTest);
-
-        SongService songService = (SongService) beanFactory.getBean("songService");
-        Constructor<?>[] constructors = songService.getClass().getConstructors();
-        // assertTrue(beanFactory.validateCountConstructor(constructors));
     }
 
 }

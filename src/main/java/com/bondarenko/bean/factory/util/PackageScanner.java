@@ -10,26 +10,19 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
-
+import java.util.stream.Stream;
 
 /**
  * PackageScanner to search for classes in packages
  */
-public class PackageScanner {
+public final class PackageScanner {
     private static final String SLASH = "/";
     private static final String DOT = ".";
     private static final String EXPANSION_CLASS = ".class";
 
-
-    public static ClassLoader getCurrentClassLoader() {
-        ClassLoader classLoader;
-        try {
-            classLoader = Thread.currentThread().getContextClassLoader();
-        } catch (SecurityException ex) {
-            throw new RuntimeException("Can't read files");
-        }
-        return classLoader;
+    private PackageScanner() {
     }
+
     /**
      * find all ".class" in a packages
      *
@@ -37,35 +30,48 @@ public class PackageScanner {
      * @return List<String> with class paths
      */
     public static List<? extends String> getPackageContent(String scanPackages) {
-        final List<String> list = new ArrayList<>();
+        List<String> classPaths = new ArrayList<>();
 
-        final URL baseDirectory = getCurrentClassLoader().getResource(scanPackages);
+        Enumeration<URL> resources;
         try {
-            Enumeration<URL> resources = getCurrentClassLoader().getResources(scanPackages);
-            String basePackage = Objects.requireNonNull(baseDirectory).getPath();
-
-            while (resources.hasMoreElements()) {
-                URL resource = resources.nextElement();
-                Path directory = Paths.get(resource.getFile());
-                Files.walk(directory)
-                        .filter(fileName -> fileName.toString().endsWith(".class"))
-                        .map(fileName -> {
-                            File file = fileName.toFile();
-
-                            String filePath = file.getPath();
-                            filePath = filePath.replace(basePackage, "");
-                            String className = filePath.replace(".class", "");
-
-                            return scanPackages + className.replace(".", File.separator);
-
-                        }).distinct()
-                        .forEach(fileName -> {
-                            list.add(fileName);
-                        });
-            }
-            return list;
+            resources = getCurrentClassLoader().getResources(scanPackages);
         } catch (IOException e) {
-            throw new RuntimeException("Can't found files and classes", e);
+            throw new RuntimeException(e);
         }
+        while (resources.hasMoreElements()) {
+            URL resource = resources.nextElement();
+            Path directory = Paths.get(resource.getFile());
+            try (Stream<Path> walk = Files.walk(directory)) {
+                walk.filter(clasName -> clasName.toString().endsWith(EXPANSION_CLASS))
+                        .map(fileName -> getClassPath(scanPackages, fileName))
+                        .distinct()
+                        .forEach(classPaths::add);
+            } catch (IOException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        }
+        return classPaths;
+    }
+
+    private static String getClassPath(String scanPackages, Path fileName) {
+        URL baseDirectory = getCurrentClassLoader().getResource(scanPackages);
+        String basePackage = Objects.requireNonNull(baseDirectory).getPath();
+        File file = fileName.toFile();
+
+        String filePath = file.getPath();
+        filePath = filePath.replace(basePackage, "");
+        String classNameWithoutExpansion = filePath.replace(EXPANSION_CLASS, "");
+        String path = scanPackages + classNameWithoutExpansion;
+        return path.replace(SLASH, DOT);
+    }
+
+    private static ClassLoader getCurrentClassLoader() {
+        ClassLoader classLoader;
+        try {
+            classLoader = Thread.currentThread().getContextClassLoader();
+        } catch (SecurityException ex) {
+            throw new RuntimeException("Can't read files");
+        }
+        return classLoader;
     }
 }
