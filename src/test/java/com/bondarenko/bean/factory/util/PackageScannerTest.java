@@ -12,7 +12,7 @@ class PackageScannerTest {
     @Test
     void foundAllClassesInDirectory() {
         String path = "testclasses/classes";
-        List<String> list = PackageScanner.getPackageContent(path);
+        List<? extends String> list = PackageScanner.getPackageContent(path);
         assertEquals(7, list.size());
     }
 
@@ -20,7 +20,7 @@ class PackageScannerTest {
     void foundAllInnerClassInDirectory() {
         String path = "testclasses/packegeFirst";
 
-        List<String> list = PackageScanner.getPackageContent(path);
+        List<? extends String> list = PackageScanner.getPackageContent(path);
         assertEquals(1, list.size());
     }
 
@@ -28,7 +28,7 @@ class PackageScannerTest {
     void foundAllClassesInPackage() {
         String path = "testclasses";
 
-        List<String> list = PackageScanner.getPackageContent(path);
+        List<? extends String> list = PackageScanner.getPackageContent(path);
 
         assertEquals(9, list.size());
         assertTrue(list.contains("testclasses.WithNonParameterizedConstructor"));

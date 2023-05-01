@@ -12,7 +12,7 @@ public class Main {
 
         beanFactory.init("testclasses");
 
-        beanFactory.setterInjector();
+        beanFactory.fieldInjector();
         SongService songService = (SongService) beanFactory.getBean("songService");
 
 
