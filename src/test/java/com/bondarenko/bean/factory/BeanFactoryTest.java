@@ -8,9 +8,7 @@ import testclasses.classes.RepositoryContainer;
 import testclasses.classes.SongService;
 import testclasses.packegeFirst.MetaInfoService;
 
-import java.lang.reflect.Constructor;
-
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class BeanFactoryTest {
     private final BeanFactory beanFactory = new BeanFactory();
