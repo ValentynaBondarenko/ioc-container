@@ -1,28 +1,30 @@
 package com.bondarenko.context;
 
 import com.bondarenko.bean.factory.BeanFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Create new bean. Bean equals object.
  */
+@Slf4j
 public class ApplicationContext {
-    private static final Logger LOGGER = LogManager.getLogger(ApplicationContext.class);
     private final BeanFactory beanFactory;
 
     public ApplicationContext(String directory) {
-        LOGGER.info("Start application context");
-        beanFactory = new BeanFactory();
+        log.info("Start application context");
+        beanFactory = new BeanFactory(directory);
+//        beanFactory = new BeanFactory();
+//        beanFactory.
+    }
 
-        beanFactory.init(directory);
-        beanFactory.fieldInjector();
-        beanFactory.constructorInjection();
-        beanFactory.injectBeanNames();
-        beanFactory.initializeBeans();
+    public Object getBean(String name) {
+        return beanFactory.getBean(name);
     }
 
     public void close() {
         beanFactory.close();
         LOGGER.info("Close application context");
     }
+
+
 }

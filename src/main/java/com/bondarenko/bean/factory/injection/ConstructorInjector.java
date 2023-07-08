@@ -11,8 +11,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-public class ConstructorInjection implements Injection {
-    private static final Logger LOGGER = LogManager.getLogger(ConstructorInjection.class);
+public class ConstructorInjector implements Injection {
+    private static final Logger LOGGER = LogManager.getLogger(ConstructorInjector.class);
 
     @Override
     public void inject(Map<String, Object> beans) {

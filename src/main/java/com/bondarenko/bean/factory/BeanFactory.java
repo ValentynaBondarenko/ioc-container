@@ -1,17 +1,14 @@
 package com.bondarenko.bean.factory;
 
 import com.bondarenko.bean.factory.annotation.stereotype.Component;
-import com.bondarenko.bean.factory.annotation.stereotype.Service;
 import com.bondarenko.bean.factory.config.BeanPostProcessor;
 import com.bondarenko.bean.factory.destroy.DestroyBean;
 import com.bondarenko.bean.factory.destroy.DestroyBeanImpl;
-import com.bondarenko.bean.factory.injection.ConstructorInjection;
-import com.bondarenko.bean.factory.injection.FieldInjection;
-import com.bondarenko.bean.factory.injection.Injection;
+import com.bondarenko.bean.factory.injection.ConstructorInjector;
+import com.bondarenko.bean.factory.injection.FieldInjector;
 import com.bondarenko.bean.factory.util.PackageScanner;
 import com.bondarenko.bean.factory.util.StringParsUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -22,14 +19,48 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Create new bean. Bean equals object.
  */
+@Slf4j
 public class BeanFactory {
-    private static final Logger LOGGER = LogManager.getLogger(BeanFactory.class);
     private final Map<String, Object> beans = new ConcurrentHashMap<>();
     private List<BeanPostProcessor> postProcessors = new ArrayList<>();
-    private Injection injection;
+    private ConstructorInjector constructorInjector;
+    private FieldInjector fieldInjector;
+
     private DestroyBean destroyBean;
 
-    public void addPostProcessor(BeanPostProcessor postProcessor) {
+    public BeanFactory() {
+        constructorInjector = new ConstructorInjector();
+        fieldInjector = new FieldInjector();
+        destroyBean = new DestroyBeanImpl();
+    }
+
+    public BeanFactory(String directory) {
+        this();
+        initialize(directory);
+    }
+
+    private void initialize(String directory) {
+        validateInjectors();
+        createBeans(directory);
+        injectFieldDependencies();
+        constructorInjection();
+        injectBeanNames();
+        initializeBeans();
+    }
+
+    private void injectFieldDependencies() {
+        fieldInjector.inject(beans);
+    }
+
+    private void constructorInjection() {
+        constructorInjector.inject(beans);
+    }
+
+    private void validateInjectors() {
+
+    }
+
+    private void addPostProcessor(BeanPostProcessor postProcessor) {
         postProcessors.add(postProcessor);
     }
 
@@ -57,13 +88,14 @@ public class BeanFactory {
      *
      * @param directory- the directory in which potential beans will be searched
      */
-    public void init(String directory) {
-        LOGGER.info("Start init method");
+    private void createBeans(String directory) {
+        log.info("Start init method");
         List<? extends String> classNames = PackageScanner.getPackageContent(directory);
         for (String fileName : classNames) {
             String className = StringParsUtil.getClassNameFromPath(fileName);
             Class<?> classObject = getClassObject(fileName);
-            if (classObject.isAnnotationPresent(Component.class) || classObject.isAnnotationPresent(Service.class)) {
+            //check it has that annotation contain Component
+            if (classObject.isAnnotationPresent(Component.class)) {
                 Object bean = createNewBean(classObject);
                 String beanId = createBeanId(className);
                 beans.put(beanId, bean);
@@ -71,24 +103,7 @@ public class BeanFactory {
         }
     }
 
-    /**
-     * Field injection to the bean
-     */
-    public void fieldInjector() {
-        injection = new FieldInjection();
-        injection.inject(beans);
-    }
-
-    /**
-     * Constructor injection to the bean
-     */
-    public void constructorInjection() {
-        LOGGER.info("Start constructor inject");
-        injection = new ConstructorInjection();
-        injection.inject(beans);
-    }
-
-    public void injectBeanNames() {
+    private void injectBeanNames() {
         for (String name : beans.keySet()) {
             Object bean = beans.get(name);
 
@@ -101,23 +116,26 @@ public class BeanFactory {
     /**
      * Customize the created bean
      */
-    public void initializeBeans() {
+    private void initializeBeans() {
         for (String name : beans.keySet()) {
             Object bean = beans.get(name);
 
             for (BeanPostProcessor postProcessor : postProcessors) {
                 postProcessor.postProcessBeforeInitialization(bean, name);
             }
-
+//init method should be called
             for (BeanPostProcessor postProcessor : postProcessors) {
                 postProcessor.postProcessAfterInitialization(bean, name);
             }
         }
     }
 
+    /**
+     * Destroy bean.
+     */
     public void close() {
         destroyBean = new DestroyBeanImpl();
-        destroyBean.close(beans);
+        destroyBean.destroy(beans);
     }
 
     private Class<?> getClassObject(String fileName) {
