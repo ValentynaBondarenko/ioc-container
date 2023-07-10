@@ -3,6 +3,7 @@ package com.bondarenko.bean.factory.injection;
 import com.bondarenko.bean.factory.annotation.Autowired;
 import com.bondarenko.bean.factory.exception.CountConstructorException;
 import com.bondarenko.bean.factory.util.StringParsUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,8 +12,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.Map;
 
+@Slf4j
 public class ConstructorInjector implements Injection {
-    private static final Logger LOGGER = LogManager.getLogger(ConstructorInjector.class);
 
     @Override
     public void inject(Map<String, Object> beans) {
@@ -22,12 +23,12 @@ public class ConstructorInjector implements Injection {
             for (Constructor<?> constructor : constructors) {
                 constructor.setAccessible(true);
                 if (constructor.isAnnotationPresent(Autowired.class) && validateCountConstructor(constructors)) {
-                    LOGGER.info("Check constructor : {} annotation @Autowired", constructor.getName());
+                    log.info("Check constructor : {} annotation @Autowired", constructor.getName());
 
                     Type[] typesParametersConstructor = constructor.getParameterTypes();
                     for (Type param : typesParametersConstructor) {
                         String paramName = param.getTypeName();
-                        LOGGER.info("Get constructor parameter : {} ", paramName);
+                        log.info("Get constructor parameter : {} ", paramName);
                         initClass(beans, paramName);
                     }
 
@@ -55,7 +56,7 @@ public class ConstructorInjector implements Injection {
             return true;
         } else {
             String errorMessage = "The class must have only one constructor annotated with @Autowired, found " + autowiredConstructorsCount + ".";
-            LOGGER.error(errorMessage);
+            log.error(errorMessage);
             throw new CountConstructorException(errorMessage);
         }
     }
@@ -69,7 +70,7 @@ public class ConstructorInjector implements Injection {
         try {
             entry.setValue(constructor.newInstance(parametersObject));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            LOGGER.error("Can't inject constructor");
+            log.error("Can't inject constructor");
             throw new RuntimeException("Can't inject constructor", e);
         }
     }
@@ -100,7 +101,7 @@ public class ConstructorInjector implements Injection {
         try {
             return Class.forName(fileName);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can`t find file name " + fileName + " ", e);
         }
     }
 
@@ -109,7 +110,7 @@ public class ConstructorInjector implements Injection {
             return classObject.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can`t work with constructor", e);
         }
     }
 

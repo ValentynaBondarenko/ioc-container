@@ -23,7 +23,7 @@ public class ApplicationContext {
 
     public void close() {
         beanFactory.close();
-        LOGGER.info("Close application context");
+        log.info("Close application context");
     }
 
 

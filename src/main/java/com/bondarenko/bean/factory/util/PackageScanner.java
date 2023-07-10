@@ -1,5 +1,7 @@
 package com.bondarenko.bean.factory.util;
 
+import lombok.SneakyThrows;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -29,28 +31,26 @@ public final class PackageScanner {
      * @param scanPackages main path which searches inside all packages for classes
      * @return List<String> with class paths
      */
-    public static List<? extends String> getPackageContent(String scanPackages) {
-        List<String> classPaths = new ArrayList<>();
-
-        Enumeration<URL> resources;
+    public static List<? extends String> getClassFullNames(String scanPackages) {
         try {
-            resources = getCurrentClassLoader().getResources(scanPackages);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        while (resources.hasMoreElements()) {
-            URL resource = resources.nextElement();
-            Path directory = Paths.get(resource.getFile());
-            try (Stream<Path> walk = Files.walk(directory)) {
-                walk.filter(clasName -> clasName.toString().endsWith(EXPANSION_CLASS))
-                        .map(fileName -> getClassPath(scanPackages, fileName))
-                        .distinct()
-                        .forEach(classPaths::add);
-            } catch (IOException e) {
-                throw new RuntimeException(e.getMessage());
+            Enumeration<URL> resources = getCurrentClassLoader().getResources(scanPackages);
+
+            List<String> classPaths = new ArrayList<>();
+
+            while (resources.hasMoreElements()) {
+                URL resource = resources.nextElement();
+                Path directory = Paths.get(resource.getFile());
+                try (Stream<Path> walk = Files.walk(directory)) {
+                    walk.filter(clasName -> clasName.toString().endsWith(EXPANSION_CLASS))
+                            .map(fileName -> getClassPath(scanPackages, fileName))
+                            .distinct()
+                            .forEach(classPaths::add);
+                }
             }
+            return classPaths;
+        } catch (IOException e) {
+            throw new RuntimeException("Can`t work with file ", e);
         }
-        return classPaths;
     }
 
     private static String getClassPath(String scanPackages, Path fileName) {
@@ -65,13 +65,8 @@ public final class PackageScanner {
         return path.replace(SLASH, DOT);
     }
 
+    @SneakyThrows
     private static ClassLoader getCurrentClassLoader() {
-        ClassLoader classLoader;
-        try {
-            classLoader = Thread.currentThread().getContextClassLoader();
-        } catch (SecurityException ex) {
-            throw new RuntimeException("Can't read files");
-        }
-        return classLoader;
+        return Thread.currentThread().getContextClassLoader();
     }
 }

@@ -90,7 +90,7 @@ public class BeanFactory {
      */
     private void createBeans(String directory) {
         log.info("Start init method");
-        List<? extends String> classNames = PackageScanner.getPackageContent(directory);
+        List<? extends String> classNames = PackageScanner.getClassFullNames(directory);
         for (String fileName : classNames) {
             String className = StringParsUtil.getClassNameFromPath(fileName);
             Class<?> classObject = getClassObject(fileName);
