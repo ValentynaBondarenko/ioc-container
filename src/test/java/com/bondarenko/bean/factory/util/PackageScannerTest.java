@@ -14,15 +14,14 @@ class PackageScannerTest {
 
         List<? extends String> list = PackageScanner.getClassFullNames(path);
 
-        assertEquals(9, list.size());
+        assertEquals(11, list.size());
         assertTrue(list.contains("testclasses.WithNonParameterizedConstructor"));
-        assertTrue(list.contains("testclasses.classes.Main"));
         assertTrue(list.contains("testclasses.classes.MoodService"));
         assertTrue(list.contains("testclasses.classes.SongRepository"));
         assertTrue(list.contains("testclasses.classes.SongService"));
         assertTrue(list.contains("testclasses.packegeFirst.MetaInfoService"));
         assertTrue(list.contains("testclasses.classes.RepositoryContainer"));
-        assertTrue(list.contains("testclasses.classes.CurrentPostProcessor"));
+        assertTrue(list.contains("testclasses.classes.processor.CurrentPostProcessor"));
         assertTrue(list.contains("testclasses.classes.RepositoryContainer$1"));
     }
 }

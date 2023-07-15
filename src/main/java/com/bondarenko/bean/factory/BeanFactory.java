@@ -60,10 +60,6 @@ public class BeanFactory {
 
     }
 
-    private void addPostProcessor(BeanPostProcessor postProcessor) {
-        postProcessors.add(postProcessor);
-    }
-
     /**
      * Get bean from context
      *
@@ -121,13 +117,25 @@ public class BeanFactory {
             Object bean = beans.get(name);
 
             for (BeanPostProcessor postProcessor : postProcessors) {
-                postProcessor.postProcessBeforeInitialization(bean, name);
+                Object newBeanValue = postProcessor.postProcessBeforeInitialization(bean, name);
+                beans.put(name, newBeanValue);
             }
-//init method should be called
+
+            initMethod();
+
             for (BeanPostProcessor postProcessor : postProcessors) {
-                postProcessor.postProcessAfterInitialization(bean, name);
+                Object newBean = postProcessor.postProcessAfterInitialization(bean, name);
+                beans.put(name, newBean);
             }
         }
+    }
+
+    /**
+     * Initialization bean. If method in bead contains annotation @PostConstruct this method will be run
+     */
+
+    private void initMethod() {
+        //TODO : [vb] add logic
     }
 
     /**

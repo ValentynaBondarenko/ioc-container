@@ -13,8 +13,6 @@ public class ApplicationContext {
     public ApplicationContext(String directory) {
         log.info("Start application context");
         beanFactory = new BeanFactory(directory);
-//        beanFactory = new BeanFactory();
-//        beanFactory.
     }
 
     public Object getBean(String name) {

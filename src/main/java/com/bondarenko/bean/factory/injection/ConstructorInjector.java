@@ -4,8 +4,6 @@ import com.bondarenko.bean.factory.annotation.Autowired;
 import com.bondarenko.bean.factory.exception.CountConstructorException;
 import com.bondarenko.bean.factory.util.StringParsUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -13,9 +11,8 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 @Slf4j
-public class ConstructorInjector implements Injection {
+public class ConstructorInjector {
 
-    @Override
     public void inject(Map<String, Object> beans) {
         for (Map.Entry<String, Object> entry : beans.entrySet()) {
             Constructor<?>[] constructors = entry.getValue().getClass().getDeclaredConstructors();

@@ -1,11 +1,13 @@
 package com.bondarenko.context;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import testclasses.classes.destroy.DestroyService;
 import testclasses.classes.destroy.RemoveService;
+import testclasses.classes.processor.CurrentPostProcessor;
+import testclasses.classes.processor.Order;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ApplicationContextTest {
@@ -52,17 +54,33 @@ class ApplicationContextTest {
     }
 
     @Test
-    public void destroyMethodThrowException() {
+    public void testBeanPostProcessorSetChangesInTheBeanAndInitializesBean() {
         //prepare
-        context = new ApplicationContext("testclasses/classes/destroy");
-        context.close();
-        DestroyService destroyMockBean = mock((DestroyService) context.getBean("DestroyService"));
-        when(destroyMockBean.destroyMethod()).thenThrow(RuntimeException.class);
-
-        //when
-        destroyMockBean.destroyMethod();
+        context = new ApplicationContext("testclasses/classes/processor");
 
         //then
-        verify(destroyMockBean).destroyMethod();
+        Order order = (Order) context.getBean("Order");
+        CurrentPostProcessor processor = (CurrentPostProcessor) context.getBean("CurrentPostProcessor");
+
+        verify(processor).postProcessBeforeInitialization(any(), any());
+        verify(order).init();
+        verify(processor).postProcessAfterInitialization(any(), any());
+        assertEquals("Order is done", order.getOrderDetails());
     }
+
+    @Test
+    public void testSequenceOfMethodCalls() {
+        //prepare
+        context = new ApplicationContext("testclasses/classes/processor");
+
+        //then
+        Order order = (Order) context.getBean("Order");
+        CurrentPostProcessor processor = (CurrentPostProcessor) context.getBean("CurrentPostProcessor");
+
+        InOrder inOrder = inOrder(context);
+        inOrder.verify(processor).postProcessBeforeInitialization(any(), any());
+        inOrder.verify(order).init();
+        inOrder.verify(processor).postProcessAfterInitialization(any(), any());
+    }
+
 }
