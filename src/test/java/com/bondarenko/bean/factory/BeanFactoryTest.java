@@ -85,7 +85,6 @@ class BeanFactoryTest {
     @Test
     void beanBeInstanceIfClassHasAnnotationAutowiredInConstructor() {
         //when
-        //when
         beanFactory = new BeanFactory("testclasses");
 
         //then

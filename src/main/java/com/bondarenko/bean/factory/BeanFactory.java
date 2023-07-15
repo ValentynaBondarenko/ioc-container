@@ -90,12 +90,7 @@ public class BeanFactory {
         for (String fileName : classNames) {
             String className = StringParsUtil.getClassNameFromPath(fileName);
             Class<?> classObject = getClassObject(fileName);
-            //check it has that annotation contain Component
-            if (classObject.isAnnotationPresent(Component.class)) {
-                Object bean = createNewBean(classObject);
-                String beanId = createBeanId(className);
-                beans.put(beanId, bean);
-            }
+            createBeanIfComponent(className, classObject);
         }
     }
 
@@ -165,5 +160,13 @@ public class BeanFactory {
 
     private String createBeanId(String className) {
         return className.substring(0, 1).toLowerCase() + className.substring(1);
+    }
+
+    private void createBeanIfComponent(String className, Class<?> classObject) {
+        if (classObject.isAnnotationPresent(Component.class)) {
+            Object bean = createNewBean(classObject);
+            String beanId = createBeanId(className);
+            beans.put(beanId, bean);
+        }
     }
 }

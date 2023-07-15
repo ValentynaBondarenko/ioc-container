@@ -23,11 +23,11 @@ public class FieldInjector {
         beans.values().forEach(bean -> {
             Arrays.stream(getFieldsFromBean(bean))
                     .filter(field -> field.isAnnotationPresent(Autowired.class))
-                    .forEach(field -> injectFieldDependenci(beansByType, bean, field));
+                    .forEach(field -> injectFieldDependency(beansByType, bean, field));
         });
     }
 
-    private void injectFieldDependenci(Map<Class<?>, List<Object>> beansByType, Object bean, Field field) {
+    private void injectFieldDependency(Map<Class<?>, List<Object>> beansByType, Object bean, Field field) {
         List<Object> dependencies = beansByType.get(field.getType());
         String setterName = createSetMethodName(field);
         try {

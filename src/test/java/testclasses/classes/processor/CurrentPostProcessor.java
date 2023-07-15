@@ -5,8 +5,12 @@ import com.bondarenko.bean.factory.config.BeanPostProcessor;
 
 @Component
 public class CurrentPostProcessor implements BeanPostProcessor {
+    private boolean postProcessBeforeInitializationCalled;
+    private boolean postProcessAfterInitializationCalled;
+
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
+        postProcessBeforeInitializationCalled = true;
         if (bean instanceof Order) {
             Order order = (Order) bean;
             order.setOrderDetails("Created new order");
@@ -16,6 +20,7 @@ public class CurrentPostProcessor implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) {
+        postProcessAfterInitializationCalled = true;
         if (bean instanceof Order) {
             Order order = (Order) bean;
             modifyOrder(order);
@@ -25,5 +30,13 @@ public class CurrentPostProcessor implements BeanPostProcessor {
 
     private void modifyOrder(Order order) {
         order.setOrderDetails("Order is done");
+    }
+
+    public boolean isMethodAfterInitializationCalled() {
+        return postProcessAfterInitializationCalled;
+    }
+
+    public boolean isMethodBeforeInitializationCalled() {
+        return postProcessBeforeInitializationCalled;
     }
 }

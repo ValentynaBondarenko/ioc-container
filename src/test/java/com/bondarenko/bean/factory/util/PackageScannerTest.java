@@ -23,5 +23,8 @@ class PackageScannerTest {
         assertTrue(list.contains("testclasses.classes.RepositoryContainer"));
         assertTrue(list.contains("testclasses.classes.processor.CurrentPostProcessor"));
         assertTrue(list.contains("testclasses.classes.RepositoryContainer$1"));
+        assertTrue(list.contains("testclasses.classes.destroy.DestroyService"));
+        assertTrue(list.contains("testclasses.classes.destroy.RemoveService"));
+        assertTrue(list.contains("testclasses.classes.processor.Order"));
     }
 }

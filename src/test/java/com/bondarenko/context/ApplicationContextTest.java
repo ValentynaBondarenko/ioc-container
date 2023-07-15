@@ -1,14 +1,12 @@
 package com.bondarenko.context;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.InOrder;
 import testclasses.classes.destroy.DestroyService;
 import testclasses.classes.destroy.RemoveService;
 import testclasses.classes.processor.CurrentPostProcessor;
 import testclasses.classes.processor.Order;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class ApplicationContextTest {
     private ApplicationContext context;
@@ -62,25 +60,9 @@ class ApplicationContextTest {
         Order order = (Order) context.getBean("Order");
         CurrentPostProcessor processor = (CurrentPostProcessor) context.getBean("CurrentPostProcessor");
 
-        verify(processor).postProcessBeforeInitialization(any(), any());
-        verify(order).init();
-        verify(processor).postProcessAfterInitialization(any(), any());
+        assertTrue(processor.isMethodBeforeInitializationCalled());
+        assertTrue(processor.isMethodAfterInitializationCalled());
+        assertTrue(order.isMethodCalled());
         assertEquals("Order is done", order.getOrderDetails());
     }
-
-    @Test
-    public void testSequenceOfMethodCalls() {
-        //prepare
-        context = new ApplicationContext("testclasses/classes/processor");
-
-        //then
-        Order order = (Order) context.getBean("Order");
-        CurrentPostProcessor processor = (CurrentPostProcessor) context.getBean("CurrentPostProcessor");
-
-        InOrder inOrder = inOrder(context);
-        inOrder.verify(processor).postProcessBeforeInitialization(any(), any());
-        inOrder.verify(order).init();
-        inOrder.verify(processor).postProcessAfterInitialization(any(), any());
-    }
-
 }

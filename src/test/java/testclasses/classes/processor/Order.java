@@ -6,9 +6,11 @@ import com.bondarenko.bean.factory.annotation.stereotype.Component;
 @Component
 public class Order {
     private String orderDetails;
+    private boolean methodCalled;
 
     @PostConstruct
     public void init() {
+        methodCalled = true;
         setOrderDetails("Order in progress");
     }
 
@@ -18,5 +20,9 @@ public class Order {
 
     public String getOrderDetails() {
         return orderDetails;
+    }
+
+    public boolean isMethodCalled() {
+        return methodCalled;
     }
 }
