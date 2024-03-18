@@ -8,18 +8,15 @@ import testclasses.classes.RepositoryContainer;
 import testclasses.classes.SongService;
 import testclasses.packegeFirst.MetaInfoService;
 
-import java.lang.reflect.Constructor;
-
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class BeanFactoryTest {
-    private final BeanFactory beanFactory = new BeanFactory();
-    private final String pathTest = "testclasses";
+    private BeanFactory beanFactory;
 
     @Test
     void beanShouldBeInstance() {
         //when
-        beanFactory.init(pathTest);
+        beanFactory = new BeanFactory("testclasses");
 
         //then
         MoodService moodService = (MoodService) beanFactory.getBean("moodService");
@@ -29,7 +26,7 @@ class BeanFactoryTest {
     @Test
     void beanBeInstanceIfClassHaveAnnotationComponent() {
         //when
-        beanFactory.init(pathTest);
+        beanFactory = new BeanFactory("testclasses");
 
         //then
         MoodService moodService = (MoodService) beanFactory.getBean("moodService");
@@ -45,7 +42,7 @@ class BeanFactoryTest {
     @Test
     void beanBeInstanceIfClassHaveAnnotationService() {
         //when
-        beanFactory.init(pathTest);
+        beanFactory = new BeanFactory("testclasses");
 
         //then
         MoodService moodService = (MoodService) beanFactory.getBean("moodService");
@@ -59,8 +56,8 @@ class BeanFactoryTest {
     @Test
     void beanBeInstanceIfFieldsClassHasAnnotationAutowired() {
         //when
-        beanFactory.init(pathTest);
-        beanFactory.setterInjector();
+        //when
+        beanFactory = new BeanFactory("testclasses");
 
         SongService songService = (SongService) beanFactory.getBean("songService");
         MoodService moodService = (MoodService) beanFactory.getBean("moodService");
@@ -69,14 +66,16 @@ class BeanFactoryTest {
         //then
         assertTrue(songService.getMoodService().getClass().isInstance(moodService));
         assertTrue(songService.getMetaInfoService().getClass().isInstance(metaInfoService));
+
         assertNull(songService.getSongRepository());
-        assertEquals(5,beanFactory.beansSize());
+        assertEquals(5, beanFactory.beansSize());
+
     }
 
     @Test
     void instanceBeanIfClassHaveNotAnnotationComponent() {
         //when
-        beanFactory.init(pathTest);
+        beanFactory = new BeanFactory("testclasses");
         SongService songService = (SongService) beanFactory.getBean("songService");
 
         //then
@@ -86,8 +85,7 @@ class BeanFactoryTest {
     @Test
     void beanBeInstanceIfClassHasAnnotationAutowiredInConstructor() {
         //when
-        beanFactory.init(pathTest);
-        beanFactory.constructorInjection();
+        beanFactory = new BeanFactory("testclasses");
 
         //then
         SongService songService = (SongService) beanFactory.getBean("songService");
@@ -99,18 +97,7 @@ class BeanFactoryTest {
         assertNotNull(songService.getSongRepository());
         assertNotNull(songService.getMetaInfoService());
         assertTrue(songService.getMoodService().getClass().isInstance(moodService));
-        assertEquals(5,beanFactory.beansSize());
-
-
-    }
-
-    @Test
-    void validateConstructorWithAnnotationAutowired() {
-        beanFactory.init(pathTest);
-
-        SongService songService = (SongService) beanFactory.getBean("songService");
-        Constructor<?>[] constructors = songService.getClass().getConstructors();
-        assertTrue(beanFactory.validateCountConstructor(constructors));
+        assertEquals(8, beanFactory.beansSize());
     }
 
 }

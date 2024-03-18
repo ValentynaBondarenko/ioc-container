@@ -20,8 +20,8 @@ public class SongService implements BeanNameAware {
     }
 
     @Autowired
-    public SongService( MoodService moodService, MetaInfoService metaInfoService, RepositoryContainer repositoryContainer) {
-     //  this.beanName = beanName;
+    public SongService(MoodService moodService, MetaInfoService metaInfoService, RepositoryContainer repositoryContainer) {
+        //this.beanName = beanName;
         this.moodService = moodService;
         this.metaInfoService = metaInfoService;
         this.songRepository = (SongRepository) repositoryContainer.repositories.get("songRepository");
